@@ -68,7 +68,27 @@ int handleCommand(char* command)
     args = "";
   }
   printf("HANDLER EXEC: '%s' ARGS: '%s'\n", exec, args);
-  return spawnProcess(exec, args);
+  return createForegroundProcess(exec, args);
+}
+
+int createBackgroundProcess(char* exec, char* args)
+{
+  pid_t new_pid = spawnProcess(exec, args);
+  printf("[%d] %s %d\n", new_pid, exec, new_pid);
+  return new_pid;
+}
+
+int createForegroundProcess(char* exec, char* args)
+{
+  int status;
+  pid_t new_pid = spawnProcess(exec, args);
+  waitpid(new_pid, &status, 0);
+  return new_pid;
+}
+
+void handleInput(char* input)
+{
+  // Do Some Epic Shit Here
 }
 
 int main(int argc, char* argv[])
