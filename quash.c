@@ -52,8 +52,9 @@ int handleCommand(char* command)
   if (strchr(command, ' ') != NULL)
   {
     char delim[] = " ";
+    char* beginningOfArgs = strchr(command, ' ');
     exec = strtok(command, delim);
-    args = strtok(NULL, delim);
+    args = beginningOfArgs+1;
     if (args[strlen(args)-1] == '\n'){
       args[strlen(args)-1] = 0;
     }
