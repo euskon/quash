@@ -6,6 +6,11 @@
 #include <errno.h>
 #include <sys/wait.h>
 
+_Bool fileExists(char* filename)
+{
+  return (access(filename, F_OK ) != -1);
+}
+
 int spawnProcess(char* toExec, char* simple_args)
 {
   /*
