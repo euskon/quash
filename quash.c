@@ -21,6 +21,19 @@ _Bool executableInPath(char* path, char* executable)
   return fileExists(result);
 }
 
+char* getCorrectPath(char** pathList, char* executable)
+{
+  for (int i = 0; pathList[i] != NULL; i++)
+  {
+    char* element = pathList[i];
+    if (executableInPath(element, executable))
+    {
+      return element;
+    }
+  }
+  return "";
+}
+
 int spawnProcess(char* toExec, char* simple_args)
 {
   /*
