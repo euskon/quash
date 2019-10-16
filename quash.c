@@ -11,6 +11,16 @@ _Bool fileExists(char* filename)
   return (access(filename, F_OK ) != -1);
 }
 
+_Bool executableInPath(char* path, char* executable)
+{
+  char* pathDivider = "/";
+  char* result = malloc(strlen(path) + strlen(pathDivider) + strlen(executable) + 1);
+  strcpy(result, path);
+  strcat(result, pathDivider);
+  strcat(result, executable);
+  return fileExists(result);
+}
+
 int spawnProcess(char* toExec, char* simple_args)
 {
   /*
