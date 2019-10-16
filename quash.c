@@ -23,11 +23,11 @@ _Bool executableInPath(char* path, char* executable)
   return fileExists(result);
 }
 
-char* getCorrectEnvPath(char* executable, char** envp)
+char* getCorrectEnvPath(char* executable)
 {
   for (int i = 1; i <= 100; i++)
   {
-    char* element = envp[i];
+    char* element = main_envp[i];
     char* pathDivider = "/";
     char* full_path = malloc(strlen(element) + strlen(pathDivider) + strlen(executable) + 1);
     strcpy(full_path, element);
@@ -65,11 +65,11 @@ char** setUpEnv(char** envp)
     array_to_return[i] = array[i];
   }
       
-  
+  main_envp = array_to_return;
   return array_to_return;  
 }
 
-char* getTruePath(char* command, char** envp)
+char* getTruePath(char* command)
 {
   if (command[0] == '/') //Absolute Path
   {
@@ -84,11 +84,11 @@ char* getTruePath(char* command, char** envp)
   }
   else
   {
-    return getCorrectEnvPath(command, envp);
+    return getCorrectEnvPath(command);
   }
 }
 
-int spawnProcess(char* toExec, char* simple_args, char** envp)
+int spawnProcess(char* toExec, char* simple_args)
 {
   /*
   toExec - complete path to an executable.
@@ -99,7 +99,7 @@ int spawnProcess(char* toExec, char* simple_args, char** envp)
   {
     printf("SPAWNER EXEC: '%s' ARGS: '%s'\n", toExec, simple_args);
     
-    char* path = getTruePath(toExec, envp);
+    char* path = getTruePath(toExec);
     if (strcmp(path, "") == 0)
     {
       printf("I couldn't find that.");
@@ -135,7 +135,7 @@ int spawnProcess(char* toExec, char* simple_args, char** envp)
   return new_pid;
 }
 
-int handleCommand(char* command, char** envp)
+int handleCommand(char* command)
 {
   char* args;
   char* exec;
@@ -158,25 +158,25 @@ int handleCommand(char* command, char** envp)
     args = "";
   }
   printf("HANDLER EXEC: '%s' ARGS: '%s'\n", exec, args);
-  return spawnProcess(exec, args, envp);
+  return spawnProcess(exec, args);
 }
 
-int createBackgroundProcess(char* command, char** envp)
+int createBackgroundProcess(char* command)
 {
-  pid_t new_pid = handleCommand(command, envp);
+  pid_t new_pid = handleCommand(command);
   printf("[%d] '%s' %d\n", new_pid, command, new_pid);
   return new_pid;
 }
 
-int createForegroundProcess(char* command, char** envp)
+int createForegroundProcess(char* command)
 {
   int status;
-  pid_t new_pid = handleCommand(command, envp);
+  pid_t new_pid = handleCommand(command);
   waitpid(new_pid, &status, 0);
   return new_pid;
 }
 
-int handleInput(char* input, char** envp)
+int handleInput(char* input)
 {
   pid_t child;
   if (input[0] == '&')
@@ -184,16 +184,16 @@ int handleInput(char* input, char** envp)
     
     if (input[1] == ' ')
     {
-      child = createBackgroundProcess(input+2, envp);
+      child = createBackgroundProcess(input+2);
     }
     else
     {
-      child = createBackgroundProcess(input+1, envp);
+      child = createBackgroundProcess(input+1);
     }
   }
   else
   {
-    child = createForegroundProcess(input, envp);
+    child = createForegroundProcess(input);
   }
   return child;
 }
@@ -202,7 +202,7 @@ int main(int argc, char* argv[], char** envp)
 {
   printf("QUASH v0.3\n");
   int status;
-  char** main_envp = setUpEnv(envp);
+  setUpEnv(envp);
 
   char test[20];
   pid_t child;
@@ -210,7 +210,7 @@ int main(int argc, char* argv[], char** envp)
   while (1){
     printf("> ");
     fgets(test,20,stdin);
-    child = handleInput(test, main_envp);
+    child = handleInput(test);
     waitpid(child, &status, 0);
   }
 
