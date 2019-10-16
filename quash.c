@@ -33,17 +33,27 @@ char* getCorrectEnvPath(char* executable)
     strcpy(full_path, element);
     strcat(full_path, pathDivider);
     strcat(full_path, executable);
+    printf("PATH: %s", full_path);
     if (fileExists(full_path))
     {
       return full_path;
     }
   }
+  printf("NOOOOO");
   return "";
 }
 
 char** setUpEnv(char** envp)
 {
-  char* buf = envp[5]+5;
+  char* buf = envp[0]+5;
+  for (int i = 0; envp[i] != NULL; i++)
+  {
+    char* element = envp[i];
+    if ((element[0] == 'P') && (element[1] == 'A') && (element[2] == 'T') && (element[3] == 'H'))
+    {
+      buf = element+5;
+    }
+  }
   int i = 0;
   int number_of_elements;
   char *p = strtok (buf, ":");
@@ -63,9 +73,9 @@ char** setUpEnv(char** envp)
   {
     array_to_return[i] = array[i];
   }
-      
+
   main_envp = array_to_return;
-  return array_to_return;  
+  return array_to_return;
 }
 
 char* getTruePath(char* command)
@@ -97,14 +107,14 @@ int spawnProcess(char* toExec, char* simple_args)
   if (new_pid == 0)
   {
     printf("SPAWNER EXEC: '%s' ARGS: '%s'\n", toExec, simple_args);
-    
+
     char* path = getTruePath(toExec);
     if (strcmp(path, "") == 0)
     {
       printf("I couldn't find that.");
       return -1;
     }
-    
+
     int SIZE = 256;
     char cmdbuf[SIZE];
     bzero(cmdbuf, SIZE);
@@ -180,7 +190,7 @@ int handleInput(char* input)
   pid_t child;
   if (input[0] == '&')
   {
-    
+
     if (input[1] == ' ')
     {
       child = createBackgroundProcess(input+2);
@@ -205,7 +215,7 @@ int main(int argc, char* argv[], char** envp)
 
   char test[20];
   pid_t child;
-  
+
   while (1){
     printf("> ");
     fgets(test,20,stdin);
