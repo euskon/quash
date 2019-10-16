@@ -144,6 +144,63 @@ int spawnProcess(char* toExec, char* simple_args)
   return new_pid;
 }
 
+int spawnPipedProcess(char* toExec, char* simple_args, int[2] pipe, _Bool front)
+{
+  /*
+  Like the first spawnProcess, but this also allows processes to be connected with pipes. The pipe variable is a fd list, set front to true if it is the start of the pipe.
+  */
+
+  pid_t new_pid = fork();
+  if (new_pid == 0)
+  {
+    printf("SPAWNER EXEC: '%s' ARGS: '%s'\n", toExec, simple_args);
+
+    //Do special stuff with duplication
+    if (front)
+    {
+      dup2(pipe1[1], STDOUT_FILENO);
+    }
+    else
+    {
+      dup2(pipe1[0], STDIN_FILENO);
+    }
+
+    char* path = getTruePath(toExec);
+    if (strcmp(path, "") == 0)
+    {
+      printf("I couldn't find that.");
+      return -1;
+    }
+
+    int SIZE = 256;
+    char cmdbuf[SIZE];
+    bzero(cmdbuf, SIZE);
+    sprintf(cmdbuf, "%s", path);
+
+    char argbuf[SIZE];
+    bzero(argbuf, SIZE);
+    sprintf(argbuf, "%s", simple_args);
+
+    if (strcmp(simple_args, "") != 0)
+    {
+      char* myArgs[] = {cmdbuf, argbuf, (char*) 0};
+      execv(cmdbuf, myArgs);
+    }
+    else
+    {
+      char* myArgs[] = {cmdbuf, (char*) 0};
+      execv(cmdbuf, myArgs);
+    }
+
+  }
+  else if (new_pid < 0)
+  {
+    printf("Error creating process.");
+  }
+
+  return new_pid;
+}
+
 int handleCommand(char* command)
 {
   char* args;
