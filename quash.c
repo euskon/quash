@@ -25,7 +25,7 @@ _Bool executableInPath(char* path, char* executable)
 
 char* getCorrectEnvPath(char* executable)
 {
-  for (int i = 1; i <= 100; i++)
+  for (int i = 1; (i <= 100) && (main_envp[i] != NULL); i++)
   {
     char* element = main_envp[i];
     char* pathDivider = "/";
@@ -61,7 +61,6 @@ char** setUpEnv(char** envp)
 
   for (i = 0; (i < 99) && (array[i] != NULL); ++i)
   {
-    printf("%i: %s\n", i, array[i]);
     array_to_return[i] = array[i];
   }
       
