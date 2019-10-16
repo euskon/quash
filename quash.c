@@ -86,9 +86,26 @@ int createForegroundProcess(char* command)
   return new_pid;
 }
 
-void handleInput(char* input)
+int handleInput(char* input)
 {
-  // Do Some Epic Shit Here
+  pid_t child;
+  if (input[0] == '&')
+  {
+    
+    if (input[1] == ' ')
+    {
+      child = createBackgroundProcess(input+2);
+    }
+    else
+    {
+      child = createBackgroundProcess(input+1);
+    }
+  }
+  else
+  {
+    child = createForegroundProcess(input);
+  }
+  return child;
 }
 
 int main(int argc, char* argv[])
@@ -102,7 +119,7 @@ int main(int argc, char* argv[])
   while (1){
     printf("> ");
     fgets(test,20,stdin);
-    child = createBackgroundProcess(test);
+    child = handleInput(test);
     waitpid(child, &status, 0);
   }
 
