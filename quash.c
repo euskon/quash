@@ -314,19 +314,27 @@ int* handlePipedInput(char* input)
   return to_return;
 }
 
-// bool handleShellCommand(char* command)
-// {
-//   //Executes the shell command passed to it. If it is not a shell command, return False. Otherwise, return True.
-//   char* commandCopy; //Make a copy of the command so as not to cause any upstream problems.
-//   strcpy(commandCopy, command);
-//   char** splitCommand = commandSplitter(commandCopy);
-//   char* theShellCommand = splitCommand[0];
-//
-//   if (strcmp(theShellCommand, "quit") != -1)
-//   {
-//
-//   }
-// }
+bool handleShellCommand(char* command)
+{
+  //Executes the shell command passed to it. If it is not a shell command, return False. Otherwise, return True.
+  printf("COMMAND: %s", command);
+  char* commandCopy = malloc(strlen(command)); //Make a copy of the command so as not to cause any upstream problems.
+  strcpy(commandCopy, command);
+  char** splitCommand = commandSplitter(commandCopy);
+  char* theShellCommand = splitCommand[0];
+
+  if (strcmp(theShellCommand, "quit") == 0)
+  {
+    is_running = false;
+    return true;
+  }
+  if (strcmp(theShellCommand, "exit") == 0)
+  {
+    is_running = false;
+    return true;
+  }
+  return false;
+}
 
 int createBackgroundProcess(char* command)
 {
@@ -348,6 +356,10 @@ int createForegroundProcess(char* command)
 int handleInput(char* input)
 {
   pid_t child;
+  if (handleShellCommand(input))
+  {
+    return -1;
+  }
   if (strchr(input, '|') != NULL)
   {
     return handlePipedInput(input)[0];
@@ -384,7 +396,10 @@ int main(int argc, char* argv[], char** envp)
     printf("> ");
     fgets(test,20,stdin);
     child = handleInput(test);
-    waitpid(child, &status, 0);
+    if (child != -1)
+    {
+      waitpid(child, &status, 0);
+    }
   }
 
   printf("QUASH, OVER AND OUT\n");
