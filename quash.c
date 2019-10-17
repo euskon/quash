@@ -8,23 +8,18 @@
 
 char** main_envp;
 
+
+// FILE UTILITY FUNCTIONS ----------------------------------------
 _Bool fileExists(char* filename)
 {
+  //Returns true if a file exists, false otherwise
   return (access(filename, F_OK ) != -1);
-}
-
-_Bool executableInPath(char* path, char* executable)
-{
-  char* pathDivider = "/";
-  char* result = malloc(strlen(path) + strlen(pathDivider) + strlen(executable) + 1);
-  strcpy(result, path);
-  strcat(result, pathDivider);
-  strcat(result, executable);
-  return fileExists(result);
 }
 
 char* getCorrectEnvPath(char* executable)
 {
+  //Returns the correct path for an executable. (assuming main_envp has been populated - see setUpEnv)
+  //Returns "" if there is no file path that meets these specifications.
   for (int i = 1; (i <= 100) && (main_envp[i] != NULL); i++)
   {
     char* element = main_envp[i];
@@ -43,8 +38,29 @@ char* getCorrectEnvPath(char* executable)
   return "";
 }
 
+char* getTruePath(char* command)
+{
+  //Gets the actual path that will be used to run the executable.
+  if (command[0] == '/') //Absolute Path
+  {
+    if (fileExists(command))
+    {
+      return command;
+    }
+    else
+    {
+      return "";
+    }
+  }
+  else
+  {
+    return getCorrectEnvPath(command);
+  }
+}
+
 char** setUpEnv(char** envp)
 {
+  //Sets main_envp. Note that the envp that is passed here should be the envp that is retrieved from the envp argument of main.
   char* buf = envp[0]+5;
   for (int i = 0; envp[i] != NULL; i++)
   {
@@ -77,29 +93,50 @@ char** setUpEnv(char** envp)
   main_envp = array_to_return;
   return array_to_return;
 }
-
-char* getTruePath(char* command)
+//----------------------------------------------------------------
+//GENERAL UTILITY FUNCTIONS---------------------------------------
+char** commandSplitter(char* command)
 {
-  if (command[0] == '/') //Absolute Path
+  //Splits a command into two parts
+  char* args;
+  char* exec;
+  char* sanitizedCommand;
+  if (command[0] == ' ')
   {
-    if (fileExists(command))
-    {
-      return command;
-    }
-    else
-    {
-      return "";
-    }
+    sanitizedCommand = command+1;
   }
   else
   {
-    return getCorrectEnvPath(command);
+    sanitizedCommand = command;
   }
-}
+  if (sanitizedCommand[strlen(sanitizedCommand)-1] == '\n') //Strip the newline off the end of the command (from when user hits "enter")
+  {
+    sanitizedCommand[strlen(sanitizedCommand)-1] = 0; //We accomplish the stripping by replacing the newline with a null terminator.
+  }
 
+  if (strchr(sanitizedCommand, ' ') != NULL) //This branch runs when there are spaces in the command.
+  {
+    char delim[] = " ";
+    char* beginningOfArgs = strchr(sanitizedCommand, ' '); //A pointer to the first space.
+    exec = strtok(sanitizedCommand, delim); //The strtok function replaces the first instance of ' ' in command with a /0 (null terminator), indicating the end of the string.
+    args = beginningOfArgs+1; //The first character iof the arguments is the one right after the first space. char* arrays are densly packed, meaning pointer arithmetic is valid.
+  }
+  else //This is for there being no spaces.
+  {
+    exec = sanitizedCommand; //If there are no spaces, then exec is the entirety of command.
+    args = ""; //There are no args.
+  }
+  char** toReturn = malloc(2); //Create an array of two elements on the heap.
+  toReturn[0] = exec;
+  toReturn[1] = args;
+  return toReturn;
+}
+//----------------------------------------------------------------
+//SPAWNING FUNCTIONS ---------------------------------------------
 int spawnProcess(char* toExec, char* simple_args)
 {
   /*
+  Creates a new process.
   toExec - complete path to an executable.
   simple_args - args you wish to pass to the executable. A string.
   */
@@ -202,41 +239,31 @@ int spawnPipedProcess(char* toExec, char* simple_args, int* pipe, _Bool front)
 
   return new_pid;
 }
+//----------------------------------------------------------------
 
-char** commandSplitter(char* command)
+
+int handleCommand(char* command)
 {
-  char* args;
-  char* exec;
-  char* sanitizedCommand;
-  if (command[0] == ' ')
-  {
-    sanitizedCommand = command+1;
-  }
-  else
-  {
-    sanitizedCommand = command;
-  }
-  if (sanitizedCommand[strlen(sanitizedCommand)-1] == '\n') //Strip the newline off the end of the command (from when user hits "enter")
-  {
-    sanitizedCommand[strlen(sanitizedCommand)-1] = 0; //We accomplish the stripping by replacing the newline with a null terminator.
-  }
+  char** splitResults = commandSplitter(command);
+  char* exec = splitResults[0];
+  char* args = splitResults[1];
+  printf("HANDLER EXEC: '%s' ARGS: '%s'\n", exec, args);
+  return spawnProcess(exec, args);
+}
 
-  if (strchr(sanitizedCommand, ' ') != NULL) //This branch runs when there are spaces in the command.
-  {
-    char delim[] = " ";
-    char* beginningOfArgs = strchr(sanitizedCommand, ' '); //A pointer to the first space.
-    exec = strtok(sanitizedCommand, delim); //The strtok function replaces the first instance of ' ' in command with a /0 (null terminator), indicating the end of the string.
-    args = beginningOfArgs+1; //The first character iof the arguments is the one right after the first space. char* arrays are densly packed, meaning pointer arithmetic is valid.
-  }
-  else //This is for there being no spaces.
-  {
-    exec = sanitizedCommand; //If there are no spaces, then exec is the entirety of command.
-    args = ""; //There are no args.
-  }
-  char** toReturn = malloc(2); //Create an array of two elements on the heap.
-  toReturn[0] = exec;
-  toReturn[1] = args;
-  return toReturn;
+int createBackgroundProcess(char* command)
+{
+  pid_t new_pid = handleCommand(command);
+  printf("[%d] '%s' %d\n", new_pid, command, new_pid);
+  return new_pid;
+}
+
+int createForegroundProcess(char* command)
+{
+  int status;
+  pid_t new_pid = handleCommand(command);
+  waitpid(new_pid, &status, 0);
+  return new_pid;
 }
 
 int* handlePipedInput(char* input)
@@ -263,30 +290,6 @@ int* handlePipedInput(char* input)
   to_return[1] = pid2;
 
   return to_return;
-}
-
-int handleCommand(char* command)
-{
-  char** splitResults = commandSplitter(command);
-  char* exec = splitResults[0];
-  char* args = splitResults[1];
-  printf("HANDLER EXEC: '%s' ARGS: '%s'\n", exec, args);
-  return spawnProcess(exec, args);
-}
-
-int createBackgroundProcess(char* command)
-{
-  pid_t new_pid = handleCommand(command);
-  printf("[%d] '%s' %d\n", new_pid, command, new_pid);
-  return new_pid;
-}
-
-int createForegroundProcess(char* command)
-{
-  int status;
-  pid_t new_pid = handleCommand(command);
-  waitpid(new_pid, &status, 0);
-  return new_pid;
 }
 
 int handleInput(char* input)
