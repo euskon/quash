@@ -6,6 +6,32 @@
 #include <errno.h>
 #include <sys/wait.h>
 
+/*
+TODO:
+-Foreground and Background Processes
+  -Alert the user when a process has started in the background.
+  -Alert the user when a background process ends.
+-Built-In Functions
+  -Set
+    -Create system of environment vairables
+    -Use set to change these
+    -Allow passing of environmental variables to child processes
+  -CD
+    -Allow changing of current directory with "CD <dir>"
+  -Quit and Exit
+  -Jobs
+    -Create table of running background processes.
+    -Update this table when a process ends.
+    -Allow user to display this table with "jobs"
+-I/O Redirection
+  -Implement injection into and output from command line with "<" and ">" respectively.
+-Batch Execution
+  -Allow batches of commands to be read from a file.
+
+KNOWN BUGS:
+-Piped programs do not return input to user after execution
+*/
+
 char** main_envp;
 
 
