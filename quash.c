@@ -404,6 +404,37 @@ bool handleShellCommand(char* command)
   return false;
 }
 
+void shellSet(char* variable){
+  char* str_VarID;
+  char* str_NewValue;
+  str_VarID = strtok(variable, "=");
+  str_NewValue = strtok(NULL, "\0");
+  //setting PATH
+  if(strcmp(str_VarID, "PATH") == 0){
+    env_path = NULL;
+    env_path = malloc(sizeof(char*) * 100);
+    int i = 0;
+    char* singlePathEntry = NULL;
+    while((str_NewValue != NULL) && (i < 100)){
+      singlePathEntry = NULL;
+      if(i == 0){
+        singlePathEntry = strtok(str_VarID, ":");
+      }
+      else{
+        singlePathEntry = strtok(NULL, ":");
+      }
+      if(singlePathEntry != NULL){
+        env_path[i] = singlePathEntry;
+      }
+      i++;
+    }
+  }
+  //setting HOME
+  else if(strcmp(str_VarID, "HOME") == 0){
+    env_home = str_NewValue;
+  }
+}
+
 int createBackgroundProcess(char* command)
 {
   //A wrapper around handleCommand. Currently does not do anything special.
