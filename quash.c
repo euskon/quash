@@ -97,7 +97,8 @@ char** setUpEnv(char** envp)
 //GENERAL UTILITY FUNCTIONS---------------------------------------
 char** commandSplitter(char* command)
 {
-  //Splits a command into two parts
+  //Splits a command into two parts - the part before the first space, and the part after it.
+  //This function DOES change the parameter passed to it, so be careful with that, if that is a concern.
   char* args;
   char* exec;
   char* sanitizedCommand;
@@ -239,11 +240,13 @@ int spawnPipedProcess(char* toExec, char* simple_args, int* pipe, _Bool front)
 
   return new_pid;
 }
+
 //----------------------------------------------------------------
-
-
+//COMMAND HANDLERS------------------------------------------------
 int handleCommand(char* command)
 {
+  //Handles a single command.
+  //Does NOT check for pipes, backgrounders, or shell tasks.
   char** splitResults = commandSplitter(command);
   char* exec = splitResults[0];
   char* args = splitResults[1];
@@ -251,23 +254,10 @@ int handleCommand(char* command)
   return spawnProcess(exec, args);
 }
 
-int createBackgroundProcess(char* command)
-{
-  pid_t new_pid = handleCommand(command);
-  printf("[%d] '%s' %d\n", new_pid, command, new_pid);
-  return new_pid;
-}
-
-int createForegroundProcess(char* command)
-{
-  int status;
-  pid_t new_pid = handleCommand(command);
-  waitpid(new_pid, &status, 0);
-  return new_pid;
-}
-
 int* handlePipedInput(char* input)
 {
+  //Handles two commands linked together by a pipe.
+  //Does NOT check for backgrounders or shell commands.
   char delim[] = "|";
   char* pipePtr = strtok(input, delim);
   char* command1 = pipePtr;
@@ -292,6 +282,23 @@ int* handlePipedInput(char* input)
   return to_return;
 }
 
+int createBackgroundProcess(char* command)
+{
+  //A wrapper around handleCommand. Currently does not do anything special.
+  pid_t new_pid = handleCommand(command);
+  printf("[%d] '%s' %d\n", new_pid, command, new_pid);
+  return new_pid;
+}
+
+int createForegroundProcess(char* command)
+{
+  //A wrapper around handleCommand. Currently does not do anything special.
+  int status;
+  pid_t new_pid = handleCommand(command);
+  waitpid(new_pid, &status, 0);
+  return new_pid;
+}
+//------------------------------------------------------------------
 int handleInput(char* input)
 {
   pid_t child;
