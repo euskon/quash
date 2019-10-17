@@ -5,6 +5,7 @@
 #include <string.h>
 #include <errno.h>
 #include <sys/wait.h>
+#include <stdbool.h>
 
 /*
 TODO:
@@ -32,11 +33,12 @@ KNOWN BUGS:
 -Piped programs do not return input to user after execution
 */
 
-char** main_envp;
-
+char** env_path;
+char* env_home;
+bool is_running = true;
 
 // FILE UTILITY FUNCTIONS ----------------------------------------
-_Bool fileExists(char* filename)
+bool fileExists(char* filename)
 {
   //Returns true if a file exists, false otherwise
   return (access(filename, F_OK ) != -1);
@@ -44,11 +46,11 @@ _Bool fileExists(char* filename)
 
 char* getCorrectEnvPath(char* executable)
 {
-  //Returns the correct path for an executable. (assuming main_envp has been populated - see setUpEnv)
+  //Returns the correct path for an executable. (assuming env_path has been populated - see setUpEnv)
   //Returns "" if there is no file path that meets these specifications.
-  for (int i = 1; (i <= 100) && (main_envp[i] != NULL); i++)
+  for (int i = 1; (i <= 100) && (env_path[i] != NULL); i++)
   {
-    char* element = main_envp[i];
+    char* element = env_path[i];
     char* pathDivider = "/";
     char* full_path = malloc(strlen(element) + strlen(pathDivider) + strlen(executable) + 1);
     strcpy(full_path, element);
@@ -86,7 +88,7 @@ char* getTruePath(char* command)
 
 char** setUpEnv(char** envp)
 {
-  //Sets main_envp. Note that the envp that is passed here should be the envp that is retrieved from the envp argument of main.
+  //Sets env_path and env_home. Note that the envp that is passed here should be the envp that is retrieved from the envp argument of main.
   char* buf = envp[0]+5;
   for (int i = 0; envp[i] != NULL; i++)
   {
@@ -94,6 +96,10 @@ char** setUpEnv(char** envp)
     if ((element[0] == 'P') && (element[1] == 'A') && (element[2] == 'T') && (element[3] == 'H'))
     {
       buf = element+5;
+    }
+    if ((element[0] == 'H') && (element[1] == 'O') && (element[2] == 'M') && (element[3] == 'E'))
+    {
+      env_home = element+5;
     }
   }
   int i = 0;
@@ -116,7 +122,7 @@ char** setUpEnv(char** envp)
     array_to_return[i] = array[i];
   }
 
-  main_envp = array_to_return;
+  env_path = array_to_return;
   return array_to_return;
 }
 //----------------------------------------------------------------
@@ -208,7 +214,7 @@ int spawnProcess(char* toExec, char* simple_args)
   return new_pid;
 }
 
-int spawnPipedProcess(char* toExec, char* simple_args, int* pipe, _Bool front)
+int spawnPipedProcess(char* toExec, char* simple_args, int* pipe, bool front)
 {
   /*
   Like the first spawnProcess, but this also allows processes to be connected with pipes. The pipe variable is a fd list, set front to true if it is the start of the pipe.
@@ -296,9 +302,9 @@ int* handlePipedInput(char* input)
   char** splitCommand2 = commandSplitter(command2);
 
   int status;
-  pid_t pid1 = spawnPipedProcess(splitCommand1[0], splitCommand1[1], new_pipe, (1==1));
+  pid_t pid1 = spawnPipedProcess(splitCommand1[0], splitCommand1[1], new_pipe, true);
   waitpid(pid1, &status, 0);
-  pid_t pid2 = spawnPipedProcess(splitCommand2[0], splitCommand2[1], new_pipe, (1==0));
+  pid_t pid2 = spawnPipedProcess(splitCommand2[0], splitCommand2[1], new_pipe, false);
   waitpid(pid2, &status, 0);
 
   int* to_return = malloc(2);
@@ -307,6 +313,20 @@ int* handlePipedInput(char* input)
 
   return to_return;
 }
+
+// bool handleShellCommand(char* command)
+// {
+//   //Executes the shell command passed to it. If it is not a shell command, return False. Otherwise, return True.
+//   char* commandCopy; //Make a copy of the command so as not to cause any upstream problems.
+//   strcpy(commandCopy, command);
+//   char** splitCommand = commandSplitter(commandCopy);
+//   char* theShellCommand = splitCommand[0];
+//
+//   if (strcmp(theShellCommand, "quit") != -1)
+//   {
+//
+//   }
+// }
 
 int createBackgroundProcess(char* command)
 {
@@ -360,7 +380,7 @@ int main(int argc, char* argv[], char** envp)
   char test[20];
   pid_t child;
 
-  while (1){
+  while (is_running){
     printf("> ");
     fgets(test,20,stdin);
     child = handleInput(test);
