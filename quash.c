@@ -36,7 +36,7 @@ KNOWN BUGS:
 char** env_path;
 char* env_home;
 
-int background_pids[100];
+int background_pids[100] = {-1};
 bool is_running = true;
 
 // FILE UTILITY FUNCTIONS ----------------------------------------
@@ -169,9 +169,11 @@ char** commandSplitter(char* command)
 
 void setUpPIDList()
 {
+  int my_background[100];
   for (int i; i < 100; i++)
   {
-    background_pids[i] = -1;
+    printf("HEYA\n");
+    my_background[i] = -1;
   }
 }
 
@@ -316,7 +318,13 @@ void changeCurrentDirectory(char* newDirectory)
 
 void showJobs()
 {
-  printf("Not implemented either!\n");
+  for (int i; i < 100; i++)
+  {
+    if (background_pids[i] != -1)
+    {
+      printf("[%d] %d", i, background_pids[i]);
+    }
+  }
 }
 //----------------------------------------------------------------
 //COMMAND HANDLERS------------------------------------------------
@@ -449,7 +457,7 @@ int main(int argc, char* argv[], char** envp)
   printf("QUASH v0.3\n");
   int status;
   setUpEnv(envp);
-  setUpPIDList();
+  //setUpPIDList(); //Causes a segfault.
 
   char test[20];
   pid_t child;
