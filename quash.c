@@ -164,6 +164,7 @@ char** commandSplitter(char* command)
   char** toReturn = malloc(2); //Create an array of two elements on the heap.
   toReturn[0] = exec;
   toReturn[1] = args;
+  printf("HERE: %s\n", toReturn[1]);
   return toReturn;
 }
 
@@ -217,7 +218,7 @@ int spawnProcess(char* toExec, char* simple_args)
     char* path = getTruePath(toExec);
     if (strcmp(path, "") == 0)
     {
-      printf("I couldn't find that.");
+      printf("I couldn't find that.\n");
       return -1;
     }
 
@@ -367,6 +368,42 @@ int* handlePipedInput(char* input)
   return to_return;
 }
 
+void shellSet(char* variable){
+  char* str_VarID;
+  char* str_NewValue;
+  printf("%s\n", variable);
+  str_VarID = strtok(variable, "=");
+  str_NewValue = strtok(NULL, "=");
+  //setting PATH
+  if(strcmp(str_VarID, "PATH") == 0){
+    env_path = NULL;
+    env_path = malloc(sizeof(char*) * 100);
+    int i = 0;
+    while((str_NewValue != NULL) && (i < 100)){
+      char* singlePathEntry = NULL;
+      if(i == 0){
+        singlePathEntry = strtok(str_NewValue, ":");
+      }
+      else{
+        singlePathEntry = strtok(NULL, ":");
+      }
+      if(singlePathEntry != NULL){
+        env_path[i] = singlePathEntry;
+      }
+      i++;
+    }
+    for(int j = 0; j < 100; j++){
+      if(env_path[j] != NULL){
+        printf("%s\n", env_path[j]);
+      }
+    }
+  }
+  //setting HOME
+  else if(strcmp(str_VarID, "HOME") == 0){
+    env_home = str_NewValue;
+  }
+}
+
 bool handleShellCommand(char* command)
 {
   //Executes the shell command passed to it. If it is not a shell command, return False. Otherwise, return True.
@@ -385,11 +422,11 @@ bool handleShellCommand(char* command)
     is_running = false;
     return true;
   }
-  // if (strcmp(theShellCommand, "set") == 0) //Not implemented - uncomment this when zach is done
-  // {
-  //   shellSet(splitCommand[1]);
-  //   return true;
-  // }
+  if (strcmp(theShellCommand, "set") == 0) //Not implemented - uncomment this when zach is done
+  {
+    shellSet(splitCommand[1]);
+    return true;
+  }
   if (strcmp(theShellCommand, "cd") == 0)
   {
     changeCurrentDirectory(splitCommand[1]);
@@ -402,37 +439,6 @@ bool handleShellCommand(char* command)
   }
 
   return false;
-}
-
-void shellSet(char* variable){
-  char* str_VarID;
-  char* str_NewValue;
-  str_VarID = strtok(variable, "=");
-  str_NewValue = strtok(NULL, "\0");
-  //setting PATH
-  if(strcmp(str_VarID, "PATH") == 0){
-    env_path = NULL;
-    env_path = malloc(sizeof(char*) * 100);
-    int i = 0;
-    char* singlePathEntry = NULL;
-    while((str_NewValue != NULL) && (i < 100)){
-      singlePathEntry = NULL;
-      if(i == 0){
-        singlePathEntry = strtok(str_VarID, ":");
-      }
-      else{
-        singlePathEntry = strtok(NULL, ":");
-      }
-      if(singlePathEntry != NULL){
-        env_path[i] = singlePathEntry;
-      }
-      i++;
-    }
-  }
-  //setting HOME
-  else if(strcmp(str_VarID, "HOME") == 0){
-    env_home = str_NewValue;
-  }
 }
 
 int createBackgroundProcess(char* command)
