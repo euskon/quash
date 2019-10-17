@@ -207,25 +207,25 @@ char** commandSplitter(char* command)
 {
   char* args;
   char* exec;
-  if (strchr(command, ' ') != NULL)
+  if (strchr(command, ' ') != NULL) //This branch runs when there are spaces in the command.
   {
     char delim[] = " ";
-    char* beginningOfArgs = strchr(command, ' ');
-    exec = strtok(command, delim);
-    args = beginningOfArgs+1;
-    if (args[strlen(args)-1] == '\n'){
-      args[strlen(args)-1] = 0;
+    char* beginningOfArgs = strchr(command, ' '); //A pointer to the first space.
+    exec = strtok(command, delim); //The strtok function replaces the first instance of ' ' in command with a /0 (null terminator), indicating the end of the string.
+    args = beginningOfArgs+1; //The first character iof the arguments is the one right after the first space. char* arrays are densly packed, meaning pointer arithmetic is valid.
+    if (args[strlen(args)-1] == '\n'){ //Strip the newline off the end of the args (from when user hits "enter")
+      args[strlen(args)-1] = 0; //We accomplish the stripping by replacing the newline with a null terminator.
     }
   }
-  else
+  else //This is for there being no spaces.
   {
-    exec = command;
-    if (exec[strlen(exec)-1] == '\n'){
+    exec = command; //If there are no spaces, then exec is the entirety of command.
+    if (exec[strlen(exec)-1] == '\n'){ //See above's explanation.
       exec[strlen(exec)-1] = 0;
     }
-    args = "";
+    args = ""; //There are no args.
   }
-  char** toReturn = malloc(2);
+  char** toReturn = malloc(2); //Create an array of two elements on the heap.
   toReturn[0] = exec;
   toReturn[1] = args;
   return toReturn;
@@ -259,27 +259,9 @@ int* handlePipedInput(char* input)
 
 int handleCommand(char* command)
 {
-  char* args;
-  char* exec;
-
-  if (strchr(command, ' ') != NULL)
-  {
-    char delim[] = " ";
-    char* beginningOfArgs = strchr(command, ' ');
-    exec = strtok(command, delim);
-    args = beginningOfArgs+1;
-    if (args[strlen(args)-1] == '\n'){
-      args[strlen(args)-1] = 0;
-    }
-  }
-  else
-  {
-    exec = command;
-    if (exec[strlen(exec)-1] == '\n'){
-      exec[strlen(exec)-1] = 0;
-    }
-    args = "";
-  }
+  char** splitResults = commandSplitter(command);
+  char* exec = splitResults[0];
+  char* args = splitResults[1];
   printf("HANDLER EXEC: '%s' ARGS: '%s'\n", exec, args);
   return spawnProcess(exec, args);
 }
