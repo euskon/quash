@@ -207,22 +207,30 @@ char** commandSplitter(char* command)
 {
   char* args;
   char* exec;
-  if (strchr(command, ' ') != NULL) //This branch runs when there are spaces in the command.
+  char* sanitizedCommand;
+  if (command[0] == ' ')
+  {
+    sanitizedCommand = command+1;
+  }
+  else
+  {
+    sanitizedCommand = command;
+  }
+  if (sanitizedCommand[strlen(sanitizedCommand)-1] == '\n') //Strip the newline off the end of the command (from when user hits "enter")
+  {
+    sanitizedCommand[strlen(sanitizedCommand)-1] = 0; //We accomplish the stripping by replacing the newline with a null terminator.
+  }
+
+  if (strchr(sanitizedCommand, ' ') != NULL) //This branch runs when there are spaces in the command.
   {
     char delim[] = " ";
-    char* beginningOfArgs = strchr(command, ' '); //A pointer to the first space.
-    exec = strtok(command, delim); //The strtok function replaces the first instance of ' ' in command with a /0 (null terminator), indicating the end of the string.
+    char* beginningOfArgs = strchr(sanitizedCommand, ' '); //A pointer to the first space.
+    exec = strtok(sanitizedCommand, delim); //The strtok function replaces the first instance of ' ' in command with a /0 (null terminator), indicating the end of the string.
     args = beginningOfArgs+1; //The first character iof the arguments is the one right after the first space. char* arrays are densly packed, meaning pointer arithmetic is valid.
-    if (args[strlen(args)-1] == '\n'){ //Strip the newline off the end of the args (from when user hits "enter")
-      args[strlen(args)-1] = 0; //We accomplish the stripping by replacing the newline with a null terminator.
-    }
   }
   else //This is for there being no spaces.
   {
-    exec = command; //If there are no spaces, then exec is the entirety of command.
-    if (exec[strlen(exec)-1] == '\n'){ //See above's explanation.
-      exec[strlen(exec)-1] = 0;
-    }
+    exec = sanitizedCommand; //If there are no spaces, then exec is the entirety of command.
     args = ""; //There are no args.
   }
   char** toReturn = malloc(2); //Create an array of two elements on the heap.
