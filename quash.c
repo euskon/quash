@@ -164,14 +164,14 @@ char** commandSplitter(char* command)
   char** toReturn = malloc(2); //Create an array of two elements on the heap.
   toReturn[0] = exec;
   toReturn[1] = args;
-  printf("HERE: %s\n", toReturn[1]);
+  //printf("HERE: %s\n", toReturn[1]);
   return toReturn;
 }
 
 void setUpPIDList()
 {
   int my_background[100];
-  for (int i; i < 100; i++)
+  for (int i = 0; i < 100; i++)
   {
     printf("HEYA\n");
     my_background[i] = -1;
@@ -181,7 +181,7 @@ void setUpPIDList()
 void deregisterPID(int pid)
 {
   int i = 0;
-  while (background_pids[i] != pid) i++;
+  while (background_pids[i] != pid){ i++; }
   background_pids[i] = -1;
 }
 
@@ -195,11 +195,15 @@ void registerPID(int pid)
 //SIGNAL HANDLERS-------------------------------------------------
 void handleEndedProcess()
 {
-  pid_t pid_to_kill;
-  while ((pid_to_kill = waitpid(-1, NULL, WNOHANG)) != -1)
-  {
-    deregisterPID(pid_to_kill);
-  }
+  // pid_t pid_to_kill;
+  // while ((pid_to_kill = waitpid((pid_t)(-1), NULL, WNOHANG)) != -1)
+  // {
+  //   deregisterPID(pid_to_kill);
+  // }
+  pid_t pid;
+  pid = wait(NULL);
+  printf("PID %d has exited\n", pid);
+  deregisterPID(pid);
 }
 //----------------------------------------------------------------
 //SPAWNING FUNCTIONS ---------------------------------------------
@@ -319,11 +323,11 @@ void changeCurrentDirectory(char* newDirectory)
 
 void showJobs()
 {
-  for (int i; i < 100; i++)
+  for (int i = 0; i < 100; i++)
   {
     if (background_pids[i] != -1)
     {
-      printf("[%d] %d", i, background_pids[i]);
+      printf("[%d] %d\n", i, background_pids[i]);
     }
   }
 }
@@ -494,8 +498,8 @@ int main(int argc, char* argv[], char** envp)
   printf("QUASH v0.3\n");
   int status;
   setUpEnv(envp);
-  //setUpPIDList(); //Causes a segfault.
-
+  setUpPIDList(); //Causes a segfault.
+  signal(SIGCHLD, handleEndedProcess);
   char test[20];
   pid_t child;
 
