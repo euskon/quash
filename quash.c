@@ -35,6 +35,8 @@ KNOWN BUGS:
 
 char** env_path;
 char* env_home;
+
+int background_pids[100];
 bool is_running = true;
 
 // FILE UTILITY FUNCTIONS ----------------------------------------
@@ -163,6 +165,30 @@ char** commandSplitter(char* command)
   toReturn[0] = exec;
   toReturn[1] = args;
   return toReturn;
+}
+
+void deregisterPID(int pid)
+{
+  int i = 0;
+  while (background_pids[i] != pid) i++;
+  background_pids[i] = -1;
+}
+
+void registerPID(int pid)
+{
+  int i = 0;
+  while (background_pids[i] == -1) i++;
+  background_pids[i] = pid;
+}
+//----------------------------------------------------------------
+//SIGNAL HANDLERS-------------------------------------------------
+void handleEndedProcess()
+{
+  pid_t pid_to_kill;
+  while ((pid_to_kill = waitpid(-1, NULL, WNOHANG)) != -1)
+  {
+    deregisterPID(pid_to_kill);
+  }
 }
 //----------------------------------------------------------------
 //SPAWNING FUNCTIONS ---------------------------------------------
