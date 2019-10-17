@@ -167,6 +167,14 @@ char** commandSplitter(char* command)
   return toReturn;
 }
 
+void setUpPIDList()
+{
+  for (int i; i < 100; i++)
+  {
+    background_pids[i] = -1;
+  }
+}
+
 void deregisterPID(int pid)
 {
   int i = 0;
@@ -392,6 +400,7 @@ int createBackgroundProcess(char* command)
 {
   //A wrapper around handleCommand. Currently does not do anything special.
   pid_t new_pid = handleCommand(command);
+  registerPID(new_pid);
   printf("[%d] '%s' %d\n", new_pid, command, new_pid);
   return new_pid;
 }
@@ -440,6 +449,7 @@ int main(int argc, char* argv[], char** envp)
   printf("QUASH v0.3\n");
   int status;
   setUpEnv(envp);
+  setUpPIDList();
 
   char test[20];
   pid_t child;
