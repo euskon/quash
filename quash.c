@@ -274,6 +274,17 @@ int spawnPipedProcess(char* toExec, char* simple_args, int* pipe, bool front)
 }
 
 //----------------------------------------------------------------
+//SHELL COMMANDS--------------------------------------------------
+void changeCurrentDirectory(char* newDirectory)
+{
+  printf("Not yet implemented, dude!\n");
+}
+
+void showJobs()
+{
+  printf("Not implemented either!\n");
+}
+//----------------------------------------------------------------
 //COMMAND HANDLERS------------------------------------------------
 int handleCommand(char* command)
 {
@@ -317,7 +328,6 @@ int* handlePipedInput(char* input)
 bool handleShellCommand(char* command)
 {
   //Executes the shell command passed to it. If it is not a shell command, return False. Otherwise, return True.
-  printf("COMMAND: %s", command);
   char* commandCopy = malloc(strlen(command)); //Make a copy of the command so as not to cause any upstream problems.
   strcpy(commandCopy, command);
   char** splitCommand = commandSplitter(commandCopy);
@@ -333,6 +343,22 @@ bool handleShellCommand(char* command)
     is_running = false;
     return true;
   }
+  // if (strcmp(theShellCommand, "set") == 0) //Not implemented - uncomment this when zach is done
+  // {
+  //   shellSet(splitCommand[1]);
+  //   return true;
+  // }
+  if (strcmp(theShellCommand, "cd") == 0)
+  {
+    changeCurrentDirectory(splitCommand[1]);
+    return true;
+  }
+  if (strcmp(theShellCommand, "jobs") == 0)
+  {
+    showJobs();
+    return true;
+  }
+
   return false;
 }
 
