@@ -33,13 +33,13 @@ char* getCorrectEnvPath(char* executable)
     strcpy(full_path, element);
     strcat(full_path, pathDivider);
     strcat(full_path, executable);
-    printf("PATH: %s", full_path);
+    printf("PATH: %s\n", full_path);
     if (fileExists(full_path))
     {
       return full_path;
     }
   }
-  printf("NOOOOO");
+  printf("NOOOOO\n");
   return "";
 }
 
@@ -144,7 +144,7 @@ int spawnProcess(char* toExec, char* simple_args)
   return new_pid;
 }
 
-int spawnPipedProcess(char* toExec, char* simple_args, int[2] pipe, _Bool front)
+int spawnPipedProcess(char* toExec, char* simple_args, int* pipe, _Bool front)
 {
   /*
   Like the first spawnProcess, but this also allows processes to be connected with pipes. The pipe variable is a fd list, set front to true if it is the start of the pipe.
@@ -155,15 +155,7 @@ int spawnPipedProcess(char* toExec, char* simple_args, int[2] pipe, _Bool front)
   {
     printf("SPAWNER EXEC: '%s' ARGS: '%s'\n", toExec, simple_args);
 
-    //Do special stuff with duplication
-    if (front)
-    {
-      dup2(pipe1[1], STDOUT_FILENO);
-    }
-    else
-    {
-      dup2(pipe1[0], STDIN_FILENO);
-    }
+
 
     char* path = getTruePath(toExec);
     if (strcmp(path, "") == 0)
@@ -180,6 +172,16 @@ int spawnPipedProcess(char* toExec, char* simple_args, int[2] pipe, _Bool front)
     char argbuf[SIZE];
     bzero(argbuf, SIZE);
     sprintf(argbuf, "%s", simple_args);
+
+    //Do special stuff with duplication
+    if (front)
+    {
+      dup2(pipe[1], STDOUT_FILENO);
+    }
+    else
+    {
+      dup2(pipe[0], STDIN_FILENO);
+    }
 
     if (strcmp(simple_args, "") != 0)
     {
@@ -201,10 +203,65 @@ int spawnPipedProcess(char* toExec, char* simple_args, int[2] pipe, _Bool front)
   return new_pid;
 }
 
+char** commandSplitter(char* command)
+{
+  char* args;
+  char* exec;
+  if (strchr(command, ' ') != NULL)
+  {
+    char delim[] = " ";
+    char* beginningOfArgs = strchr(command, ' ');
+    exec = strtok(command, delim);
+    args = beginningOfArgs+1;
+    if (args[strlen(args)-1] == '\n'){
+      args[strlen(args)-1] = 0;
+    }
+  }
+  else
+  {
+    exec = command;
+    if (exec[strlen(exec)-1] == '\n'){
+      exec[strlen(exec)-1] = 0;
+    }
+    args = "";
+  }
+  char** toReturn = malloc(2);
+  toReturn[0] = exec;
+  toReturn[1] = args;
+  return toReturn;
+}
+
+int* handlePipedInput(char* input)
+{
+  char delim[] = "|";
+  char* pipePtr = strtok(input, delim);
+  char* command1 = pipePtr;
+  char* command2 = strtok(NULL, delim);
+
+  int new_pipe[2];
+  pipe(new_pipe);
+
+  char** splitCommand1 = commandSplitter(command1);
+  char** splitCommand2 = commandSplitter(command2);
+
+  int status;
+  pid_t pid1 = spawnPipedProcess(splitCommand1[0], splitCommand1[1], new_pipe, (1==1));
+  waitpid(pid1, &status, 0);
+  pid_t pid2 = spawnPipedProcess(splitCommand2[0], splitCommand2[1], new_pipe, (1==0));
+  waitpid(pid2, &status, 0);
+
+  int* to_return = malloc(2);
+  to_return[0] = pid1;
+  to_return[1] = pid2;
+
+  return to_return;
+}
+
 int handleCommand(char* command)
 {
   char* args;
   char* exec;
+
   if (strchr(command, ' ') != NULL)
   {
     char delim[] = " ";
@@ -245,6 +302,10 @@ int createForegroundProcess(char* command)
 int handleInput(char* input)
 {
   pid_t child;
+  if (strchr(input, '|') != NULL)
+  {
+    return handlePipedInput(input)[0];
+  }
   if (input[0] == '&')
   {
 
