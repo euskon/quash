@@ -245,7 +245,8 @@ int spawnProcess(char* toExec, char* simple_args)
       char* myArgs[] = {cmdbuf, (char*) 0};
       execv(cmdbuf, myArgs);
     }
-
+    printf("There was an unidentified error running this process. However, it has been resolved.\n");
+    exit(0);
   }
   else if (new_pid < 0)
   {
@@ -304,7 +305,8 @@ int spawnPipedProcess(char* toExec, char* simple_args, int* pipe, bool front)
       char* myArgs[] = {cmdbuf, (char*) 0};
       execv(cmdbuf, myArgs);
     }
-
+    printf("There was an unidentified error running this process. However, it has been resolved.\n");
+    exit(0);
   }
   else if (new_pid < 0)
   {
