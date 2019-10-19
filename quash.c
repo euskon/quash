@@ -374,7 +374,6 @@ int* handlePipedInput(char* input)
 void shellSet(char* variable){
   char* str_VarID;
   char* str_NewValue;
-  printf("%s\n", variable);
   str_VarID = strtok(variable, "=");
   str_NewValue = strtok(NULL, "=");
   //setting PATH
@@ -394,11 +393,6 @@ void shellSet(char* variable){
         env_path[i] = singlePathEntry;
       }
       i++;
-    }
-    for(int j = 0; j < 100; j++){
-      if(env_path[j] != NULL){
-        printf("%s\n", env_path[j]);
-      }
     }
   }
   //setting HOME
