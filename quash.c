@@ -495,7 +495,7 @@ int main(int argc, char* argv[], char** envp)
   int status;
   setUpEnv(envp);
   setUpPIDList(); //Causes a segfault.
-  signal(SIGCHLD, handleEndedProcess);
+  //signal(SIGCHLD, handleEndedProcess);
   char input[100];
   pid_t child;
 
@@ -503,10 +503,6 @@ int main(int argc, char* argv[], char** envp)
     printf("> ");
     fgets(input,100,stdin);
     child = handleInput(input);
-    if (child != -1)
-    {
-      waitpid(child, &status, 0);
-    }
   }
 
   printf("QUASH, OVER AND OUT\n");
