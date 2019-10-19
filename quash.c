@@ -320,7 +320,17 @@ int spawnPipedProcess(char* toExec, char* simple_args, int* pipe, bool front)
 //SHELL COMMANDS--------------------------------------------------
 void changeCurrentDirectory(char* newDirectory)
 {
-  printf("Not yet implemented, dude!\n");
+  printf("%s\n", env_home);
+  //No args: cd
+  if(newDirectory == NULL){
+    if(chdir(env_home)!= 0){
+      printf("'%s' is not an available or existent directory\n", env_home);
+    }
+  }
+  //With args: cd <newDir>
+  else if(chdir(newDirectory)!= 0){
+    printf("%s is not an available or existent directory\n", newDirectory);
+  }
 }
 
 void showJobs()
@@ -437,6 +447,14 @@ bool handleShellCommand(char* command)
     showJobs();
     return true;
   }
+  // if (strcmp(theShellCommand, "pwd") == 0)
+  // {
+  //   char* buf;
+  //   getcwd(buf, 100);
+  //   if(buf == NULL){ return false; }
+  //   else{ printf("%s\n", buf); }    
+  //   return true;
+  // }
 
   return false;
 }
