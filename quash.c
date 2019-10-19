@@ -173,7 +173,6 @@ void setUpPIDList()
   int my_background[100];
   for (int i = 0; i < 100; i++)
   {
-    printf("HEYA\n");
     my_background[i] = -1;
   }
 }
@@ -500,13 +499,13 @@ int main(int argc, char* argv[], char** envp)
   setUpEnv(envp);
   setUpPIDList(); //Causes a segfault.
   signal(SIGCHLD, handleEndedProcess);
-  char test[20];
+  char input[100];
   pid_t child;
 
   while (is_running){
     printf("> ");
-    fgets(test,20,stdin);
-    child = handleInput(test);
+    fgets(input,100,stdin);
+    child = handleInput(input);
     if (child != -1)
     {
       waitpid(child, &status, 0);
