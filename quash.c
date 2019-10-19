@@ -321,7 +321,7 @@ void changeCurrentDirectory(char* newDirectory)
 {
   printf("%s\n", env_home);
   //No args: cd
-  if(newDirectory == NULL){
+  if(newDirectory[0] == NULL){
     if(chdir(env_home)!= 0){
       printf("'%s' is not an available or existent directory\n", env_home);
     }
