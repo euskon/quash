@@ -180,14 +180,14 @@ void setUpPIDList()
 void deregisterPID(int pid)
 {
   int i = 0;
-  while (background_pids[i] != pid){ i++; }
+  while ((background_pids[i] != pid) && (i < 100)){ i++; }
   background_pids[i] = -1;
 }
 
 void registerPID(int pid)
 {
   int i = 0;
-  while (background_pids[i] == -1) i++;
+  while ((background_pids[i] == -1) && (i < 100)) i++;
   background_pids[i] = pid;
 }
 //----------------------------------------------------------------
