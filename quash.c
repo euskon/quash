@@ -208,11 +208,6 @@ void registerPID(int pid)
 //SIGNAL HANDLERS-------------------------------------------------
 void handleEndedProcess()
 {
-  // pid_t pid_to_kill;
-  // while ((pid_to_kill = waitpid((pid_t)(-1), NULL, WNOHANG)) != -1)
-  // {
-  //   deregisterPID(pid_to_kill);
-  // }
   pid_t pid;
   pid = wait(NULL);
   printf("PID %d has exited\n", pid);
@@ -526,7 +521,7 @@ int main(int argc, char* argv[], char** envp)
   int status;
   setUpEnv(envp);
   setUpPIDList(); //Causes a segfault.
-  //signal(SIGCHLD, handleEndedProcess);
+  signal(SIGCHLD, handleEndedProcess);
   char input[100];
   pid_t child;
 
