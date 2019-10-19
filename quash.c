@@ -81,6 +81,10 @@ char* getTruePath(char* command)
   }
   else
   {
+    if (fileExists(command))
+    {
+      return command;
+    }
     return getCorrectEnvPath(command);
   }
 }
