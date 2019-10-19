@@ -171,10 +171,9 @@ char** commandSplitter(char* command)
 
 void setUpPIDList()
 {
-  int my_background[100];
   for (int i = 0; i < 100; i++)
   {
-    my_background[i] = -1;
+    background_pids[i] = -1;
   }
 }
 
