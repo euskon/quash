@@ -9,18 +9,9 @@
 
 /*
 TODO:
--Foreground and Background Processes
-  -Alert the user when a process has started in the background.
-  -Alert the user when a background process ends.
 -Built-In Functions
   -Set
     -Allow passing of environmental variables to child processes
-  -CD
-    -Allow changing of current directory with "CD <dir>"
-  -Quit and Exit
-  -Jobs
-    -Update this table when a process ends.
-    -Allow user to display this table with "jobs"
 -I/O Redirection
   -Implement injection into and output from command line with "<" and ">" respectively.
 -Batch Execution
@@ -166,6 +157,44 @@ char** commandSplitter(char* command)
   toReturn[0] = exec;
   toReturn[1] = args;
   //printf("HERE: %s\n", toReturn[1]);
+  return toReturn;
+}
+
+char** generalSplitter(char* command, char charToSplitOn)
+{
+  //Splits a command into two parts - the part before the first space, and the part after it.
+  //This function DOES change the parameter passed to it, so be careful with that, if that is a concern.
+  char* args;
+  char* exec;
+  char* sanitizedCommand;
+  if (command[0] == ' ')
+  {
+    sanitizedCommand = command+1;
+  }
+  else
+  {
+    sanitizedCommand = command;
+  }
+  if (sanitizedCommand[strlen(sanitizedCommand)-1] == '\n') //Strip the newline off the end of the command (from when user hits "enter")
+  {
+    sanitizedCommand[strlen(sanitizedCommand)-1] = 0; //We accomplish the stripping by replacing the newline with a null terminator.
+  }
+
+  if (strchr(sanitizedCommand, charToSplitOn) != NULL) //This branch runs when there are spaces in the command.
+  {
+    char delim[] = {charToSplitOn};
+    char* beginningOfArgs = strchr(sanitizedCommand, charToSplitOn); //A pointer to the first space.
+    exec = strtok(sanitizedCommand, delim); //The strtok function replaces the first instance of char in command with a /0 (null terminator), indicating the end of the string.
+    args = beginningOfArgs+1; //The first character iof the arguments is the one right after the first space. char* arrays are densly packed, meaning pointer arithmetic is valid.
+  }
+  else //This is for there being no spaces.
+  {
+    exec = sanitizedCommand; //If there are no spaces, then exec is the entirety of command.
+    args = ""; //There are no args.
+  }
+  char** toReturn = malloc(2); //Create an array of two elements on the heap.
+  toReturn[0] = exec;
+  toReturn[1] = args;
   return toReturn;
 }
 
@@ -330,7 +359,7 @@ void changeCurrentDirectory(char* newDirectory)
 {
   printf("%s\n", env_home);
   //No args: cd
-  if(newDirectory[0] == NULL){
+  if(newDirectory[0] == '\0'){
     if(chdir(env_home)!= 0){
       printf("'%s' is not an available or existent directory\n", env_home);
     }
@@ -467,6 +496,41 @@ bool handleShellCommand(char* command)
   return false;
 }
 
+bool handleRedirection(char* command)
+{
+  /*
+  Returns true if there is a redirection operator, and handles the command. Returns false otherwise.
+  */
+  bool redir = false;
+  char delim;
+  char* control;
+  if (strchr(command,'<') != NULL)
+  {
+    delim = '<';
+    control = "r";
+    redir = true;
+  }
+  if (strchr(command,'>') != NULL)
+  {
+    delim = '>';
+    control = "w";
+    redir = true;
+  }
+
+  if (redir)
+  {
+    char** split = generalSplitter(command, delim);
+    char* new_command = split[0];
+    char* file = split[1];
+    FILE* fp = freopen (file, control, stdin);
+    printf("sfsfsdf");
+    close(fp);
+    handleCommand(new_command);
+    return true;
+  }
+  return false;
+}
+
 int createBackgroundProcess(char* command)
 {
   //A wrapper around handleCommand. Currently does not do anything special.
@@ -488,6 +552,10 @@ int createForegroundProcess(char* command)
 int handleInput(char* input)
 {
   pid_t child;
+  if (handleRedirection(input))
+  {
+    return -1;
+  }
   if (handleShellCommand(input))
   {
     return -1;
@@ -520,7 +588,7 @@ int main(int argc, char* argv[], char** envp)
   printf("QUASH v0.3\n");
   int status;
   setUpEnv(envp);
-  setUpPIDList(); //Causes a segfault.
+  setUpPIDList();
   signal(SIGCHLD, handleEndedProcess);
   char input[100];
   pid_t child;
