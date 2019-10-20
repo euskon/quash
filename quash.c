@@ -27,6 +27,26 @@ char* env_home;
 int background_pids[100] = {-1};
 bool is_running = true;
 
+char** getEnvFormatted(char** path, char* home){
+  char** formattedEnv = malloc(sizeof(char*) * 2);
+  char* pathConcatd = malloc(sizeof(char) * 5);
+  strcat(pathConcatd, "PATH=");
+  
+  for(int i = 0; path[i] != NULL; i++){
+    strcat(pathConcatd, path[i]);
+    if(path[i+1] != NULL){
+      strcat(pathConcatd, ":");
+    }
+  }
+  
+  char* homeConcatd = malloc(sizeof(char) * 5);
+  strcat(homeConcatd, "HOME=");
+  strcat(homeConcatd, home);
+  formattedEnv[0] = pathConcatd;
+  formattedEnv[1] = homeConcatd;
+  return(formattedEnv);
+}
+
 // FILE UTILITY FUNCTIONS ----------------------------------------
 bool fileExists(char* filename)
 {
