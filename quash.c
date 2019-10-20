@@ -519,6 +519,30 @@ bool handleShellCommand(char* command)
   return false;
 }
 
+void handleFileOut(char* command)
+{
+  char** split = generalSplitter(command, '>');
+  char* new_command = split[0];
+  char* file = split[1];
+
+  int outdes = dup(1);
+  freopen(file, "w", stdout);
+  handleCommand(new_command);
+  stdout = fdopen(outdes ,"w");
+}
+
+void handleFileIn(char* command)
+{
+  char** split = generalSplitter(command, '<');
+  char* new_command = split[0];
+  char* file = split[1];
+
+  int outdes = dup(0);
+  freopen(file, "r", stdin);
+  handleCommand(new_command);
+  stdin = fdopen(outdes ,"r");
+}
+
 bool handleRedirection(char* command)
 {
   /*
@@ -527,30 +551,19 @@ bool handleRedirection(char* command)
   bool redir = false;
   char delim;
   char* control;
+  int file_fd;
   if (strchr(command,'<') != NULL)
   {
-    delim = '<';
-    control = "r";
-    redir = true;
+    handleFileIn(command);
+    return true;
   }
   if (strchr(command,'>') != NULL)
   {
-    delim = '>';
-    control = "w";
-    redir = true;
-  }
-
-  if (redir)
-  {
-    char** split = generalSplitter(command, delim);
-    char* new_command = split[0];
-    char* file = split[1];
-    FILE* fp = freopen (file, control, stdin);
-    printf("sfsfsdf");
-    close(fp);
-    handleCommand(new_command);
+    handleFileOut(command);
     return true;
   }
+
+
   return false;
 }
 
