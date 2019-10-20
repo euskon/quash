@@ -357,7 +357,7 @@ int spawnPipedProcess(char* toExec, char* simple_args, int* pipe, bool front)
 //SHELL COMMANDS--------------------------------------------------
 void changeCurrentDirectory(char* newDirectory)
 {
-  printf("%s\n", env_home);
+  //printf("%s\n", env_home);
   //No args: cd
   if(newDirectory[0] == '\0'){
     if(chdir(env_home)!= 0){
