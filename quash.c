@@ -239,8 +239,11 @@ void handleEndedProcess()
 {
   pid_t pid;
   pid = wait(NULL);
-  printf("PID %d has exited\n", pid);
-  deregisterPID(pid);
+  if (pid != -1)
+  {
+    printf("PID %d has exited\n", pid);
+    deregisterPID(pid);
+  }
 }
 //----------------------------------------------------------------
 //SPAWNING FUNCTIONS ---------------------------------------------
