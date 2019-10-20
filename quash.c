@@ -298,12 +298,13 @@ int spawnProcess(char* toExec, char* simple_args)
     if (strcmp(simple_args, "") != 0)
     {
       char* myArgs[] = {cmdbuf, argbuf, (char*) 0};
-      execv(cmdbuf, myArgs);
+      execvpe(cmdbuf, myArgs, getEnvFormatted(env_path, env_home));
     }
     else
     {
       char* myArgs[] = {cmdbuf, (char*) 0};
-      execv(cmdbuf, myArgs);
+      execvpe(cmdbuf, myArgs);
+      execvpe(cmdbuf, myArgs, getEnvFormatted(env_path, env_home));
     }
     printf("There was an unidentified error running this process. However, it has been resolved.\n");
     exit(0);
@@ -358,12 +359,12 @@ int spawnPipedProcess(char* toExec, char* simple_args, int* pipe, bool front)
     if (strcmp(simple_args, "") != 0)
     {
       char* myArgs[] = {cmdbuf, argbuf, (char*) 0};
-      execv(cmdbuf, myArgs);
+      execvpe(cmdbuf, myArgs, getEnvFormatted(env_path, env_home));
     }
     else
     {
       char* myArgs[] = {cmdbuf, (char*) 0};
-      execv(cmdbuf, myArgs);
+      execvpe(cmdbuf, myArgs, getEnvFormatted(env_path, env_home));
     }
     printf("There was an unidentified error running this process. However, it has been resolved.\n");
     exit(0);
