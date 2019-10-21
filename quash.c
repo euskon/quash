@@ -9,13 +9,8 @@
 
 /*
 TODO:
--Built-In Functions
-  -Set
-    -Allow passing of environmental variables to child processes
 -I/O Redirection
   -Implement injection into and output from command line with "<" and ">" respectively.
--Batch Execution
-  -Allow batches of commands to be read from a file.
 
 KNOWN BUGS:
 -Piped programs do not return input to user after execution
