@@ -549,10 +549,6 @@ bool handleRedirection(char* command)
   /*
   Returns true if there is a redirection operator, and handles the command. Returns false otherwise.
   */
-  bool redir = false;
-  char delim;
-  char* control;
-  int file_fd;
   if (strchr(command,'<') != NULL)
   {
     handleFileIn(command);
@@ -623,17 +619,15 @@ int handleInput(char* input)
 int main(int argc, char* argv[], char** envp)
 {
   printf("QUASH v0.3\n");
-  int status;
   setUpEnv(envp);
   setUpPIDList();
   signal(SIGCHLD, handleEndedProcess);
   char input[100];
-  pid_t child;
 
   while (is_running){
     printf("> ");
     fgets(input,100,stdin);
-    child = handleInput(input);
+    handleInput(input);
   }
 
   printf("QUASH, OVER AND OUT\n");
