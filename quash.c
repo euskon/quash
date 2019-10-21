@@ -521,10 +521,19 @@ void handleFileOut(char* command)
   char* new_command = split[0];
   char* file = split[1];
 
-  int outdes = dup(1);
-  freopen(file, "w", stdout);
-  handleCommand(new_command);
-  stdout = fdopen(outdes ,"w");
+  //int outdes = dup(1);
+  int status;
+  if(fork() == 0){//child
+    freopen(file, "w", stdout);
+    handleCommand(new_command);
+    exit(1);
+  }
+  else{//parent
+    while(wait(&status) != -1);
+  }
+  //freopen(file, "w", stdout);
+  //handleCommand(new_command);
+  //stdout = fdopen(outdes ,"w");
 }
 
 void handleFileIn(char* command)
