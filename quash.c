@@ -66,13 +66,13 @@ char* getCorrectEnvPath(char* executable)
     strcpy(full_path, element);
     strcat(full_path, pathDivider);
     strcat(full_path, executable);
-    printf("PATH: %s\n", full_path);
+    //printf("PATH: %s\n", full_path);
     if (fileExists(full_path))
     {
       return full_path;
     }
   }
-  printf("NOOOOO\n");
+  //printf("NOOOOO\n");
   return "";
 }
 
@@ -277,7 +277,7 @@ int spawnProcess(char* toExec, char* simple_args)
   pid_t new_pid = fork();
   if (new_pid == 0)
   {
-    printf("SPAWNER EXEC: '%s' ARGS: '%s'\n", toExec, simple_args);
+    //printf("SPAWNER EXEC: '%s' ARGS: '%s'\n", toExec, simple_args);
 
     char* path = getTruePath(toExec);
     if (strcmp(path, "") == 0)
@@ -326,7 +326,7 @@ int spawnPipedProcess(char* toExec, char* simple_args, int* pipe, bool front)
   pid_t new_pid = fork();
   if (new_pid == 0)
   {
-    printf("SPAWNER EXEC: '%s' ARGS: '%s'\n", toExec, simple_args);
+    //printf("SPAWNER EXEC: '%s' ARGS: '%s'\n", toExec, simple_args);
 
 
 
@@ -413,7 +413,7 @@ int handleCommand(char* command)
   char** splitResults = commandSplitter(command);
   char* exec = splitResults[0];
   char* args = splitResults[1];
-  printf("HANDLER EXEC: '%s' ARGS: '%s'\n", exec, args);
+  //printf("HANDLER EXEC: '%s' ARGS: '%s'\n", exec, args);
   return spawnProcess(exec, args);
 }
 
@@ -493,7 +493,7 @@ bool handleShellCommand(char* command)
     is_running = false;
     return true;
   }
-  if (strcmp(theShellCommand, "set") == 0) //Not implemented - uncomment this when zach is done
+  if (strcmp(theShellCommand, "set") == 0)
   {
     shellSet(splitCommand[1]);
     return true;
@@ -625,7 +625,7 @@ int main(int argc, char* argv[], char** envp)
   char input[100];
 
   while (is_running){
-    printf("> ");
+    printf(">>> ");
     fgets(input,100,stdin);
     handleInput(input);
   }

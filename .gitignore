@@ -2,3 +2,4 @@ quash
 /bg
 test*
 *.txt
+!batch_commands_test.txt

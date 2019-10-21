@@ -1,0 +1,7 @@
+ls -1
+echo hello
+ls -l
+pwd
+cd ..
+ls -l
+exit
